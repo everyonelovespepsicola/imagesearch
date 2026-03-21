@@ -1,5 +1,7 @@
 # Universal Advanced Image Search App
 
+[![Try Me](https://img.shields.io/badge/Try%20Me-1a73e8?style=for-the-badge)](https://everyonelovespepsicola.github.io/imagesearch/)
+
 A fast, responsive, and fully customizable frontend wrapper for Google Advanced Image Search. Designed to feel like a native mobile app on phones and tablets, while elegantly expanding for large desktop monitors.
 
 ## ✨ Features
