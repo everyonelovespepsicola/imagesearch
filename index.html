@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <!-- This meta tag is critical for Apple/Android: it forces the app to scale correctly and disables pinch-to-zoom to feel like a native app -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ƃooƃlǝ advanced search</title>
+    <title>Ǝ˥פOOפ Advanced Image Search</title>
     
     <style>
         /* 0. Theme Variables */
         :root {
             --bg-color: #f1f3f4;
-            --header-bg: #202124;
-            --header-text: #ffffff;
-            --header-shadow: rgba(0,0,0,0.1);
             
             --card-bg: #ffffff;
             --card-shadow: rgba(0,0,0,0.05);
@@ -52,21 +49,6 @@
             height: 100%; /* Uses 100% of body to avoid mobile browser address bar quirks */
         }
 
-        /* 4. App Header */
-        .app-header {
-            background-color: var(--header-bg);
-            color: var(--header-text);
-            padding: 1rem;
-            text-align: center;
-            box-shadow: 0 4px 6px var(--header-shadow);
-            z-index: 10;
-        }
-
-        .app-header h1 {
-            font-size: 1.25rem;
-            font-weight: 500;
-        }
-
         /* 5. Scrollable working area */
         .content-area {
             flex-grow: 1; /* Takes up all remaining space below the header */
@@ -78,6 +60,16 @@
         .advanced-form {
             width: 100%;
             padding: 2rem 3rem; /* Provides a nice cushion on the left and right */
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 2rem;
         }
 
         .section-header {
@@ -170,14 +162,25 @@
 <body>
 
     <div class="app-container">
-        <!-- Top App Bar -->
-        <header class="app-header">
-            <h1>ƃooƃlǝ advanced search</h1>
-        </header>
-
         <!-- Main Content (Advanced Search Form & Results) -->
         <main class="content-area">
             <div class="advanced-form">
+                <div class="form-title">
+                    <!-- Upside down Google SVG Logo -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50" width="120" height="38">
+                        <style>
+                            .g-font { font-family: 'Product Sans', 'Google Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 42px; font-weight: 500; letter-spacing: -1px; }
+                        </style>
+                        <!-- scale(1, -1) creates a vertical puddle reflection (upside down, but reads left-to-right)! -->
+                        <g transform="translate(0, 50) scale(1, -1)">
+                            <text x="80" y="40" text-anchor="middle" class="g-font">
+                                <tspan fill="#4285f4">G</tspan><tspan fill="#ea4335">o</tspan><tspan fill="#fbbc05">o</tspan><tspan fill="#4285f4">g</tspan><tspan fill="#34a853">l</tspan><tspan fill="#ea4335">e</tspan>
+                            </text>
+                        </g>
+                    </svg>
+                    Advanced Image Search
+                </div>
+
                 <div class="section-header">Find images with...</div>
                 
                 <div class="form-row">
@@ -392,7 +395,8 @@
 
             let url = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(finalQuery);
             if (tbsParts.length > 0) {
-                url += '&tbs=' + encodeURIComponent(tbsParts.join(','));
+                // We do not encode the tbs parameter because Google relies on literal commas and colons to split the filters
+                url += '&tbs=' + tbsParts.join(',');
             }
             
             // Save all selections to localStorage before leaving the page
