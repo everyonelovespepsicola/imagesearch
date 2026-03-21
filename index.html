@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- This meta tag is critical for Apple/Android: it forces the app to scale correctly and disables pinch-to-zoom to feel like a native app -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Universal Image Search App</title>
+    
+    <style>
+        /* 0. Theme Variables */
+        :root {
+            --bg-color: #f1f3f4;
+            --header-bg: #202124;
+            --header-text: #ffffff;
+            --header-shadow: rgba(0,0,0,0.1);
+            
+            --card-bg: #ffffff;
+            --card-shadow: rgba(0,0,0,0.05);
+            
+            --text-primary: #202124;
+            --text-secondary: #3c4043;
+            
+            --border-color: #dadce0;
+            --input-bg: #ffffff;
+            
+            --primary-color: #1a73e8;
+            --primary-hover: #1557b0;
+            --button-text: #ffffff;
+        }
+
+        /* 1. Reset defaults to ensure full-edge usage */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 2. Lock the body to the viewport size */
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Prevents the whole page from bouncing/scrolling */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+        }
+
+        /* 3. App container acting as the main flex column */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%; /* Uses 100% of body to avoid mobile browser address bar quirks */
+        }
+
+        /* 4. App Header */
+        .app-header {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px var(--header-shadow);
+            z-index: 10;
+        }
+
+        .app-header h1 {
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        /* 5. Scrollable working area */
+        .content-area {
+            flex-grow: 1; /* Takes up all remaining space below the header */
+            overflow-y: auto; /* Allows scrolling ONLY inside the content area */
+            background-color: var(--card-bg); /* Forces the whole background to match the form */
+        }
+
+        /* 6. Advanced Form Layout */
+        .advanced-form {
+            width: 100%;
+            padding: 2rem 3rem; /* Provides a nice cushion on the left and right */
+        }
+
+        .section-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-header:not(:first-child) {
+            margin-top: 2rem;
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .form-label {
+            flex: 0 0 200px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            padding-right: 1rem;
+        }
+
+        .form-control {
+            flex: 0 1 500px; /* Limits width so inputs don't stretch indefinitely across wide screens */
+            min-width: 250px;
+        }
+
+        .form-control input,
+        .form-control select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            outline: none;
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+        }
+
+        .form-control input:focus,
+        .form-control select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: 2rem;
+            padding-left: 200px; /* Offsets the button perfectly to align with the input boxes */
+        }
+
+        .search-btn {
+            background-color: var(--primary-color);
+            color: var(--button-text);
+            font-weight: 500;
+            border: none;
+            padding: 0.6rem 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .search-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 600px) {
+            .advanced-form {
+                padding: 1.5rem 1rem; /* Slightly less cushion on small screens */
+            }
+            .form-label {
+                flex: 0 0 100%;
+                margin-bottom: 0.5rem;
+            }
+            .button-row {
+                padding-left: 0; /* Reset alignment for the stacked mobile view */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Top App Bar -->
+        <header class="app-header">
+            <h1>Image Search</h1>
+        </header>
+
+        <!-- Main Content (Advanced Search Form & Results) -->
+        <main class="content-area">
+            <div class="advanced-form">
+                <div class="section-header">Find images with...</div>
+                
+                <div class="form-row">
+                    <div class="form-label">all these words:</div>
+                    <div class="form-control">
+                        <input type="text" id="adv-all" list="adv-all-list">
+                        <datalist id="adv-all-list"></datalist>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">this exact word or phrase:</div>
+                    <div class="form-control">
+                        <input type="text" id="adv-exact" list="adv-exact-list">
+                        <datalist id="adv-exact-list"></datalist>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">any of these words:</div>
+                    <div class="form-control">
+                        <input type="text" id="adv-any" list="adv-any-list">
+                        <datalist id="adv-any-list"></datalist>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">none of these words:</div>
+                    <div class="form-control">
+                        <input type="text" id="adv-none" list="adv-none-list">
+                        <datalist id="adv-none-list"></datalist>
+                    </div>
+                </div>
+
+                <div class="section-header">Then narrow your results by...</div>
+                
+                <div class="form-row">
+                    <div class="form-label">image size:</div>
+                    <div class="form-control">
+                        <select id="adv-size">
+                            <option value="">Any size</option>
+                            <option value="large">Large</option>
+                            <option value="medium">Medium</option>
+                            <option value="icon">Icon</option>
+                            <option value="2mp">Larger than 2 MP</option>
+                            <option value="4mp">Larger than 4 MP</option>
+                            <option value="6mp">Larger than 6 MP</option>
+                            <option value="8mp">Larger than 8 MP</option>
+                            <option value="10mp">Larger than 10 MP</option>
+                            <option value="12mp">Larger than 12 MP</option>
+                            <option value="15mp">Larger than 15 MP</option>
+                            <option value="20mp">Larger than 20 MP</option>
+                            <option value="40mp">Larger than 40 MP</option>
+                            <option value="70mp">Larger than 70 MP</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">aspect ratio:</div>
+                    <div class="form-control">
+                        <select id="adv-aspect">
+                            <option value="">Any aspect ratio</option>
+                            <option value="tall">Tall</option>
+                            <option value="square">Square</option>
+                            <option value="wide">Wide</option>
+                            <option value="panoramic">Panoramic</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">colors in image:</div>
+                    <div class="form-control">
+                        <select id="adv-colors">
+                            <option value="">Any color</option>
+                            <option value="color">Full color</option>
+                            <option value="gray">Black & white</option>
+                            <option value="trans">Transparent</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">type of image:</div>
+                    <div class="form-control">
+                        <select id="adv-type">
+                            <option value="">Any type</option>
+                            <option value="face">Face</option>
+                            <option value="photo">Photo</option>
+                            <option value="clipart">Clip art</option>
+                            <option value="lineart">Line drawing</option>
+                            <option value="animated">Animated</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">site or domain:</div>
+                    <div class="form-control">
+                        <input type="text" id="adv-site" placeholder="e.g. wikipedia.org" list="adv-site-list">
+                        <datalist id="adv-site-list"></datalist>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">file type:</div>
+                    <div class="form-control">
+                        <select id="adv-filetype">
+                            <option value="">Any format</option>
+                            <option value="jpg">JPG files</option>
+                            <option value="gif">GIF files</option>
+                            <option value="png">PNG files</option>
+                            <option value="bmp">BMP files</option>
+                            <option value="svg">SVG files</option>
+                            <option value="webp">WEBP files</option>
+                            <option value="ico">ICO files</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">usage rights:</div>
+                    <div class="form-control">
+                        <select id="adv-rights">
+                            <option value="">Not filtered by license</option>
+                            <option value="cc_publicdomain">Creative Commons licenses</option>
+                            <option value="commercial">Commercial & other licenses</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">time:</div>
+                    <div class="form-control">
+                        <select id="adv-time">
+                            <option value="">Any time</option>
+                            <option value="d1">Past 24 hours</option>
+                            <option value="w1">Past week</option>
+                            <option value="m1">Past month</option>
+                            <option value="y1">Past year</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <button class="search-btn" onclick="executeAdvancedSearch()">Search</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Allow users to press "Enter" inside any input to trigger the search
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                executeAdvancedSearch();
+            }
+        });
+
+        function executeAdvancedSearch() {
+            let all = document.getElementById('adv-all').value.trim();
+            let exact = document.getElementById('adv-exact').value.trim();
+            let any = document.getElementById('adv-any').value.trim();
+            let none = document.getElementById('adv-none').value.trim();
+            let site = document.getElementById('adv-site').value.trim();
+            let filetype = document.getElementById('adv-filetype').value;
+
+            let queryParts = [];
+
+            if (all) queryParts.push(all);
+            if (exact) queryParts.push('"' + exact + '"');
+            if (any) {
+                let anyWords = any.split(/\s+/).join(' OR ');
+                queryParts.push('(' + anyWords + ')');
+            }
+            if (none) {
+                let noneWords = none.split(/\s+/).map(function(word) { return '-' + word; }).join(' ');
+                queryParts.push(noneWords);
+            }
+            if (site) queryParts.push('site:' + site);
+            if (filetype) queryParts.push('filetype:' + filetype);
+
+            let finalQuery = queryParts.join(' ');
+
+            // Map dropdowns to Google's 'tbs' advanced search parameters
+            let tbsParts = [];
+            
+            let size = document.getElementById('adv-size').value;
+            if (size === 'large') tbsParts.push('isz:l');
+            else if (size === 'medium') tbsParts.push('isz:m');
+            else if (size === 'icon') tbsParts.push('isz:i');
+            else if (size.endsWith('mp')) tbsParts.push('isz:lt,islt:' + size);
+
+            let aspect = document.getElementById('adv-aspect').value;
+            if (aspect === 'tall') tbsParts.push('iar:t');
+            else if (aspect === 'square') tbsParts.push('iar:s');
+            else if (aspect === 'wide') tbsParts.push('iar:w');
+            else if (aspect === 'panoramic') tbsParts.push('iar:xw');
+
+            let colors = document.getElementById('adv-colors').value;
+            if (colors === 'color') tbsParts.push('ic:color');
+            else if (colors === 'gray') tbsParts.push('ic:gray');
+            else if (colors === 'trans') tbsParts.push('ic:trans');
+
+            let type = document.getElementById('adv-type').value;
+            if (type === 'face') tbsParts.push('itp:face');
+            else if (type === 'photo') tbsParts.push('itp:photo');
+            else if (type === 'clipart') tbsParts.push('itp:clipart');
+            else if (type === 'lineart') tbsParts.push('itp:lineart');
+            else if (type === 'animated') tbsParts.push('itp:animated');
+
+            let time = document.getElementById('adv-time').value;
+            if (time === 'd1') tbsParts.push('qdr:d');
+            else if (time === 'w1') tbsParts.push('qdr:w');
+            else if (time === 'm1') tbsParts.push('qdr:m');
+            else if (time === 'y1') tbsParts.push('qdr:y');
+
+            let rights = document.getElementById('adv-rights').value;
+            if (rights === 'cc_publicdomain') tbsParts.push('sur:cl');
+            else if (rights === 'commercial') tbsParts.push('sur:fmc');
+
+            let url = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(finalQuery);
+            if (tbsParts.length > 0) {
+                url += '&tbs=' + encodeURIComponent(tbsParts.join(','));
+            }
+            
+            // Save all selections to localStorage before leaving the page
+            saveSelections();
+
+            // Redirect to Google Images with all parameters applied
+            window.location.href = url;
+        }
+
+        // Automatically saves all text boxes and dropdowns to the browser
+        function saveSelections() {
+            // Dropdowns: save the single current selection persistently
+            let dropdownFields = ['adv-size', 'adv-aspect', 'adv-colors', 'adv-type', 'adv-filetype', 'adv-rights', 'adv-time'];
+            dropdownFields.forEach(function(id) {
+                localStorage.setItem(id, document.getElementById(id).value);
+            });
+
+            // Text boxes: save to a history array for the drop-down autocomplete
+            let textFields = ['adv-all', 'adv-exact', 'adv-any', 'adv-none', 'adv-site'];
+            textFields.forEach(function(id) {
+                let val = document.getElementById(id).value.trim();
+                if (val) {
+                    let history = JSON.parse(localStorage.getItem(id + '-history') || '[]');
+                    // Remove the value if it already exists so we can move it to the top
+                    history = history.filter(item => item !== val);
+                    history.unshift(val); // Add to the beginning
+                    if (history.length > 10) history.pop(); // Keep only 10 recent searches
+                    localStorage.setItem(id + '-history', JSON.stringify(history));
+                }
+            });
+        }
+
+        // Automatically loads the saved values into the form when the app opens
+        function loadSelections() {
+            // Restore persistent dropdown selections
+            let dropdownFields = ['adv-size', 'adv-aspect', 'adv-colors', 'adv-type', 'adv-filetype', 'adv-rights', 'adv-time'];
+            dropdownFields.forEach(function(id) {
+                let savedValue = localStorage.getItem(id);
+                if (savedValue !== null) {
+                    document.getElementById(id).value = savedValue;
+                }
+            });
+
+            // Load history into the drop-down datalists for text boxes
+            let textFields = ['adv-all', 'adv-exact', 'adv-any', 'adv-none', 'adv-site'];
+            textFields.forEach(function(id) {
+                let history = JSON.parse(localStorage.getItem(id + '-history') || '[]');
+                let dataList = document.getElementById(id + '-list');
+                if (dataList) {
+                    dataList.innerHTML = '';
+                    history.forEach(function(item) {
+                        let option = document.createElement('option');
+                        option.value = item;
+                        dataList.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // Run the load function immediately when the page finishes rendering
+        loadSelections();
+    </script>
+</body>
+</html>

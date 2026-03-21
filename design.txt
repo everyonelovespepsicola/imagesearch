@@ -1,0 +1,30 @@
+
+Find images with...
+
+all these words: [text box]
+
+this exact word or phrase: [text box]
+
+any of these words: [text box]
+
+none of these words: [text box]
+
+Then narrow your results by...
+
+image size: [drop down]
+
+aspect ratio: [drop down]
+
+colors in image:  [drop down]
+
+type of image: [drop down]
+
+site or domain: [text box]
+
+file type: [drop down]
+
+usage rights: [drop down]
+
+time [drop down]
+
+button [Search]
