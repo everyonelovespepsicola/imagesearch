@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <!-- This meta tag is critical for Apple/Android: it forces the app to scale correctly and disables pinch-to-zoom to feel like a native app -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>&#x202D;פOOפ˥Ǝ&#x202C; Advanced Image Search</title>
-    
+
     <style>
         /* 0. Theme Variables */
         :root {
             --bg-color: #f1f3f4;
-            
+
             --card-bg: #ffffff;
-            --card-shadow: rgba(0,0,0,0.05);
-            
+            --card-shadow: rgba(0, 0, 0, 0.05);
+
             --text-primary: #202124;
             --text-secondary: #3c4043;
-            
+
             --border-color: #dadce0;
             --input-bg: #ffffff;
-            
+
             --primary-color: #1a73e8;
             --primary-hover: #1557b0;
             --button-text: #ffffff;
@@ -33,10 +34,12 @@
         }
 
         /* 2. Lock the body to the viewport size */
-        html, body {
+        html,
+        body {
             width: 100%;
             height: 100%;
-            overflow: hidden; /* Prevents the whole page from bouncing/scrolling */
+            overflow: hidden;
+            /* Prevents the whole page from bouncing/scrolling */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
         }
@@ -46,20 +49,25 @@
             display: flex;
             flex-direction: column;
             width: 100%;
-            height: 100%; /* Uses 100% of body to avoid mobile browser address bar quirks */
+            height: 100%;
+            /* Uses 100% of body to avoid mobile browser address bar quirks */
         }
 
         /* 5. Scrollable working area */
         .content-area {
-            flex-grow: 1; /* Takes up all remaining space below the header */
-            overflow-y: auto; /* Allows scrolling ONLY inside the content area */
-            background-color: var(--card-bg); /* Forces the whole background to match the form */
+            flex-grow: 1;
+            /* Takes up all remaining space below the header */
+            overflow-y: auto;
+            /* Allows scrolling ONLY inside the content area */
+            background-color: var(--card-bg);
+            /* Forces the whole background to match the form */
         }
 
         /* 6. Advanced Form Layout */
         .advanced-form {
             width: 100%;
-            padding: 2rem 3rem; /* Provides a nice cushion on the left and right */
+            padding: 2rem 3rem;
+            /* Provides a nice cushion on the left and right */
         }
 
         .form-title {
@@ -100,8 +108,10 @@
         }
 
         .form-control {
-            flex: 0 1 500px; /* Limits width so inputs don't stretch indefinitely across wide screens */
+            flex: 0 1 500px;
+            /* Limits width so inputs don't stretch indefinitely across wide screens */
             min-width: 250px;
+            position: relative;
         }
 
         .form-control input,
@@ -122,11 +132,55 @@
             box-shadow: 0 0 0 1px var(--primary-color);
         }
 
+        /* Custom Autocomplete Styling */
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 4px 6px var(--card-shadow);
+        }
+
+        .autocomplete-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .autocomplete-item:hover {
+            background-color: var(--bg-color);
+        }
+
+        .autocomplete-delete {
+            color: var(--text-secondary);
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 0 5px;
+            cursor: pointer;
+        }
+
+        .autocomplete-delete:hover {
+            color: #d93025;
+        }
+
         .button-row {
             display: flex;
             justify-content: flex-start;
             margin-top: 2rem;
-            padding-left: 200px; /* Offsets the button perfectly to align with the input boxes */
+            padding-left: 200px;
+            /* Offsets the button perfectly to align with the input boxes */
         }
 
         .search-btn {
@@ -147,18 +201,23 @@
         /* Mobile adjustments */
         @media (max-width: 600px) {
             .advanced-form {
-                padding: 1.5rem 1rem; /* Slightly less cushion on small screens */
+                padding: 1.5rem 1rem;
+                /* Slightly less cushion on small screens */
             }
+
             .form-label {
                 flex: 0 0 100%;
                 margin-bottom: 0.5rem;
             }
+
             .button-row {
-                padding-left: 0; /* Reset alignment for the stacked mobile view */
+                padding-left: 0;
+                /* Reset alignment for the stacked mobile view */
             }
         }
     </style>
 </head>
+
 <body>
 
     <div class="app-container">
@@ -169,12 +228,22 @@
                     <!-- Upside down Google SVG Logo -->
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50" width="120" height="38">
                         <style>
-                            .g-font { font-family: 'Product Sans', 'Google Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 42px; font-weight: 500; letter-spacing: -1px; }
+                            .g-font {
+                                font-family: 'Product Sans', 'Google Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                                font-size: 42px;
+                                font-weight: 500;
+                                letter-spacing: -1px;
+                            }
                         </style>
                         <!-- scale(1, -1) creates a vertical puddle reflection (upside down, but reads left-to-right)! -->
                         <g transform="translate(0, 50) scale(1, -1)">
                             <text x="80" y="40" text-anchor="middle" class="g-font">
-                                <tspan fill="#4285f4">G</tspan><tspan fill="#ea4335">o</tspan><tspan fill="#fbbc05">o</tspan><tspan fill="#4285f4">g</tspan><tspan fill="#34a853">l</tspan><tspan fill="#ea4335">e</tspan>
+                                <tspan fill="#4285f4">G</tspan>
+                                <tspan fill="#ea4335">o</tspan>
+                                <tspan fill="#fbbc05">o</tspan>
+                                <tspan fill="#4285f4">g</tspan>
+                                <tspan fill="#34a853">l</tspan>
+                                <tspan fill="#ea4335">e</tspan>
                             </text>
                         </g>
                     </svg>
@@ -182,38 +251,38 @@
                 </div>
 
                 <div class="section-header">Find images with...</div>
-                
+
                 <div class="form-row">
                     <div class="form-label">all these words:</div>
                     <div class="form-control">
-                        <input type="text" id="adv-all" list="adv-all-list">
-                        <datalist id="adv-all-list"></datalist>
+                        <input type="text" id="adv-all" autocomplete="off">
+                        <div id="adv-all-list" class="autocomplete-list"></div>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-label">this exact word or phrase:</div>
                     <div class="form-control">
-                        <input type="text" id="adv-exact" list="adv-exact-list">
-                        <datalist id="adv-exact-list"></datalist>
+                        <input type="text" id="adv-exact" autocomplete="off">
+                        <div id="adv-exact-list" class="autocomplete-list"></div>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-label">any of these words:</div>
                     <div class="form-control">
-                        <input type="text" id="adv-any" list="adv-any-list">
-                        <datalist id="adv-any-list"></datalist>
+                        <input type="text" id="adv-any" autocomplete="off">
+                        <div id="adv-any-list" class="autocomplete-list"></div>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-label">none of these words:</div>
                     <div class="form-control">
-                        <input type="text" id="adv-none" list="adv-none-list">
-                        <datalist id="adv-none-list"></datalist>
+                        <input type="text" id="adv-none" autocomplete="off">
+                        <div id="adv-none-list" class="autocomplete-list"></div>
                     </div>
                 </div>
 
                 <div class="section-header">Then narrow your results by...</div>
-                
+
                 <div class="form-row">
                     <div class="form-label">image size:</div>
                     <div class="form-control">
@@ -274,8 +343,8 @@
                 <div class="form-row">
                     <div class="form-label">site or domain:</div>
                     <div class="form-control">
-                        <input type="text" id="adv-site" placeholder="e.g. wikipedia.org" list="adv-site-list">
-                        <datalist id="adv-site-list"></datalist>
+                        <input type="text" id="adv-site" placeholder="e.g. wikipedia.org" autocomplete="off">
+                        <div id="adv-site-list" class="autocomplete-list"></div>
                     </div>
                 </div>
                 <div class="form-row">
@@ -348,7 +417,7 @@
                 queryParts.push('(' + anyWords + ')');
             }
             if (none) {
-                let noneWords = none.split(/\s+/).map(function(word) { return '-' + word; }).join(' ');
+                let noneWords = none.split(/\s+/).map(function (word) { return '-' + word; }).join(' ');
                 queryParts.push(noneWords);
             }
             if (site) queryParts.push('site:' + site);
@@ -358,7 +427,7 @@
 
             // Map dropdowns to Google's 'tbs' advanced search parameters
             let tbsParts = [];
-            
+
             let size = document.getElementById('adv-size').value;
             if (size === 'large') tbsParts.push('isz:l');
             else if (size === 'medium') tbsParts.push('isz:m');
@@ -398,7 +467,7 @@
                 // We do not encode the tbs parameter because Google relies on literal commas and colons to split the filters
                 url += '&tbs=' + tbsParts.join(',');
             }
-            
+
             // Save all selections to localStorage before leaving the page
             saveSelections();
 
@@ -410,20 +479,20 @@
         function saveSelections() {
             // Dropdowns: save the single current selection persistently
             let dropdownFields = ['adv-size', 'adv-aspect', 'adv-colors', 'adv-type', 'adv-filetype', 'adv-rights', 'adv-time'];
-            dropdownFields.forEach(function(id) {
+            dropdownFields.forEach(function (id) {
                 localStorage.setItem(id, document.getElementById(id).value);
             });
 
             // Text boxes: save to a history array for the drop-down autocomplete
             let textFields = ['adv-all', 'adv-exact', 'adv-any', 'adv-none', 'adv-site'];
-            textFields.forEach(function(id) {
+            textFields.forEach(function (id) {
                 let val = document.getElementById(id).value.trim();
                 if (val) {
                     let history = JSON.parse(localStorage.getItem(id + '-history') || '[]');
                     // Remove the value if it already exists so we can move it to the top
                     history = history.filter(item => item !== val);
                     history.unshift(val); // Add to the beginning
-                    if (history.length > 10) history.pop(); // Keep only 10 recent searches
+                    if (history.length > 50) history.pop(); // Keep only 50 recent searches
                     localStorage.setItem(id + '-history', JSON.stringify(history));
                 }
             });
@@ -433,31 +502,90 @@
         function loadSelections() {
             // Restore persistent dropdown selections
             let dropdownFields = ['adv-size', 'adv-aspect', 'adv-colors', 'adv-type', 'adv-filetype', 'adv-rights', 'adv-time'];
-            dropdownFields.forEach(function(id) {
+            dropdownFields.forEach(function (id) {
                 let savedValue = localStorage.getItem(id);
                 if (savedValue !== null) {
                     document.getElementById(id).value = savedValue;
-                }
-            });
-
-            // Load history into the drop-down datalists for text boxes
-            let textFields = ['adv-all', 'adv-exact', 'adv-any', 'adv-none', 'adv-site'];
-            textFields.forEach(function(id) {
-                let history = JSON.parse(localStorage.getItem(id + '-history') || '[]');
-                let dataList = document.getElementById(id + '-list');
-                if (dataList) {
-                    dataList.innerHTML = '';
-                    history.forEach(function(item) {
-                        let option = document.createElement('option');
-                        option.value = item;
-                        dataList.appendChild(option);
-                    });
                 }
             });
         }
 
         // Run the load function immediately when the page finishes rendering
         loadSelections();
+
+        // Custom Autocomplete Logic
+        const autocompleteFields = ['adv-all', 'adv-exact', 'adv-any', 'adv-none', 'adv-site'];
+
+        function showHistory(id) {
+            let history = JSON.parse(localStorage.getItem(id + '-history') || '[]');
+            let dataList = document.getElementById(id + '-list');
+            let input = document.getElementById(id);
+
+            if (history.length === 0) {
+                dataList.style.display = 'none';
+                return;
+            }
+
+            // Filter history based on current input value
+            let val = input.value.toLowerCase();
+            let filteredHistory = history.filter(item => item.toLowerCase().includes(val));
+
+            if (filteredHistory.length === 0) {
+                dataList.style.display = 'none';
+                return;
+            }
+
+            dataList.innerHTML = '';
+            filteredHistory.forEach(function (item) {
+                let div = document.createElement('div');
+                div.className = 'autocomplete-item';
+
+                let textSpan = document.createElement('span');
+                textSpan.textContent = item;
+                textSpan.style.flexGrow = '1';
+                textSpan.onclick = function (e) {
+                    e.stopPropagation();
+                    input.value = item;
+                    dataList.style.display = 'none';
+                };
+
+                let delSpan = document.createElement('span');
+                delSpan.innerHTML = '&times;';
+                delSpan.className = 'autocomplete-delete';
+                delSpan.title = 'Remove from history';
+                delSpan.onclick = function (e) {
+                    e.stopPropagation();
+                    let currentHistory = JSON.parse(localStorage.getItem(id + '-history') || '[]');
+                    currentHistory = currentHistory.filter(h => h !== item);
+                    localStorage.setItem(id + '-history', JSON.stringify(currentHistory));
+                    showHistory(id); // Refresh list instantly after deleting
+                    input.focus();
+                };
+
+                div.appendChild(textSpan);
+                div.appendChild(delSpan);
+                dataList.appendChild(div);
+            });
+            dataList.style.display = 'block';
+        }
+
+        autocompleteFields.forEach(function (id) {
+            let input = document.getElementById(id);
+            input.addEventListener('focus', function () { showHistory(id); });
+            input.addEventListener('input', function () { showHistory(id); });
+        });
+
+        // Hide autocomplete when clicking anywhere outside
+        document.addEventListener('click', function (e) {
+            autocompleteFields.forEach(function (id) {
+                let input = document.getElementById(id);
+                let dataList = document.getElementById(id + '-list');
+                if (input && dataList && e.target !== input && e.target !== dataList && !dataList.contains(e.target)) {
+                    dataList.style.display = 'none';
+                }
+            });
+        });
     </script>
 </body>
+
 </html>
