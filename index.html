@@ -235,15 +235,15 @@
                                 letter-spacing: -1px;
                             }
                         </style>
-                        <!-- scale(1, -1) creates a vertical puddle reflection (upside down, but reads left-to-right)! -->
-                        <g transform="translate(0, 50) scale(1, -1)">
-                            <text x="80" y="40" text-anchor="middle" class="g-font">
-                                <tspan fill="#4285f4">G</tspan>
-                                <tspan fill="#ea4335">o</tspan>
-                                <tspan fill="#fbbc05">o</tspan>
-                                <tspan fill="#4285f4">g</tspan>
-                                <tspan fill="#34a853">l</tspan>
+                        <!-- Rotate 180 and reverse letter order to create a true upside-down Google that reads left-to-right -->
+                        <g transform="rotate(180, 80, 25)">
+                            <text x="80" y="37" text-anchor="middle" class="g-font">
                                 <tspan fill="#ea4335">e</tspan>
+                                <tspan fill="#34a853">l</tspan>
+                                <tspan fill="#4285f4">g</tspan>
+                                <tspan fill="#fbbc05">o</tspan>
+                                <tspan fill="#ea4335">o</tspan>
+                                <tspan fill="#4285f4">G</tspan>
                             </text>
                         </g>
                     </svg>
