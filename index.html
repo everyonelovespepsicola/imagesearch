@@ -422,9 +422,37 @@
                         </div>
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="form-label">safesearch:</div>
+                    <div class="form-control">
+                        <select id="adv-safe">
+                            <option value="active" selected>Filter explicit results (Active)</option>
+                            <option value="off">Off (Show all results)</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div class="button-row">
                     <button class="search-btn" onclick="executeAdvancedSearch()">Search</button>
+                </div>
+
+                <div class="section-header">Or reverse search by image...</div>
+
+                <div class="form-row">
+                    <div class="form-label">image URL:</div>
+                    <div class="form-control" style="display: flex; gap: 10px;">
+                        <input type="text" id="adv-reverse-url" placeholder="Paste image URL (e.g. https://example.com/photo.jpg)" autocomplete="off">
+                        <button class="search-btn" style="padding: 0.6rem 1.5rem; flex-shrink: 0;" onclick="executeReverseSearch()">Search URL</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label">upload image file:</div>
+                    <div class="form-control">
+                        <form action="https://www.google.com/searchbyimage/upload" method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                            <input type="file" name="encoded_image" accept="image/*" required style="padding: 0.4rem; font-size: 0.85rem; flex-grow: 1;">
+                            <button type="submit" class="search-btn" style="padding: 0.6rem 1.5rem; flex-shrink: 0;">Upload &amp; Search</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </main>
@@ -456,9 +484,23 @@
         // Allow users to press "Enter" inside any input to trigger the search
         document.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
-                executeAdvancedSearch();
+                if (document.activeElement && document.activeElement.id === 'adv-reverse-url') {
+                    executeReverseSearch();
+                } else {
+                    executeAdvancedSearch();
+                }
             }
         });
+
+        function executeReverseSearch() {
+            let imgUrl = document.getElementById('adv-reverse-url').value.trim();
+            if (!imgUrl) {
+                alert('Please enter or paste an image URL to reverse search.');
+                return;
+            }
+            let lensUrl = 'https://lens.google.com/uploadbyurl?url=' + encodeURIComponent(imgUrl);
+            window.location.href = lensUrl;
+        }
 
         function executeAdvancedSearch() {
             let all = document.getElementById('adv-all').value.trim();
@@ -545,6 +587,9 @@
             if (rights === 'cc_publicdomain') tbsParts.push('sur:cl');
             else if (rights === 'commercial') tbsParts.push('sur:fmc');
 
+            let safe = document.getElementById('adv-safe').value;
+            let safeParam = safe ? '&safe=' + safe : '&safe=active';
+
             let finalQuery = baseQuery;
             let noneWordsArray = none ? none.split(/\s+/) : [];
             let urlBase = 'https://www.google.com/search?tbm=isch&q=';
@@ -554,7 +599,7 @@
             if (noneWordsArray.length > 0) {
                 for (let word of noneWordsArray) {
                     let nextQuery = finalQuery ? finalQuery + ' -' + word : '-' + word;
-                    let testUrl = urlBase + encodeURIComponent(nextQuery) + tbsString;
+                    let testUrl = urlBase + encodeURIComponent(nextQuery) + tbsString + safeParam;
 
                     // Google's max URL length is typically 2048 characters. We leave a safe margin.
                     if (testUrl.length > 2000) {
@@ -565,7 +610,7 @@
                 }
             }
 
-            let url = urlBase + encodeURIComponent(finalQuery) + tbsString;
+            let url = urlBase + encodeURIComponent(finalQuery) + tbsString + safeParam;
 
             // Save all selections to localStorage before leaving the page
             saveSelections();
