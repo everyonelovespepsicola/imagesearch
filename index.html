@@ -182,6 +182,14 @@
             color: #d93025;
         }
 
+        .autocomplete-check {
+            color: #1e8e3e;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 0 2px;
+            user-select: none;
+        }
+
         .button-row {
             display: flex;
             justify-content: flex-start;
@@ -504,14 +512,16 @@
             });
 
             // Text boxes: save to a history array for the drop-down autocomplete
+            let today = new Date().toISOString().split('T')[0];
             let textFields = ['adv-all', 'adv-exact', 'adv-any', 'adv-none', 'adv-site'];
             textFields.forEach(function (id) {
                 let val = document.getElementById(id).value.trim();
                 if (val) {
-                    let history = JSON.parse(localStorage.getItem(id + '-history') || '[]');
+                    let rawHistory = JSON.parse(localStorage.getItem(id + '-history') || '[]');
+                    let history = rawHistory.map(item => typeof item === 'string' ? { text: item, lastSearched: '' } : item);
                     // Remove the value if it already exists so we can move it to the top
-                    history = history.filter(item => item !== val);
-                    history.unshift(val); // Add to the beginning
+                    history = history.filter(item => item.text !== val);
+                    history.unshift({ text: val, lastSearched: today }); // Add to the beginning with today's date
                     if (history.length > 50) history.pop(); // Keep only 50 recent searches
                     localStorage.setItem(id + '-history', JSON.stringify(history));
                 }
@@ -537,23 +547,27 @@
         const autocompleteFields = ['adv-all', 'adv-exact', 'adv-any', 'adv-none', 'adv-site'];
 
         function showHistory(id) {
-            let history = JSON.parse(localStorage.getItem(id + '-history') || '[]');
+            let rawHistory = JSON.parse(localStorage.getItem(id + '-history') || '[]');
             let dataList = document.getElementById(id + '-list');
             let input = document.getElementById(id);
 
-            if (history.length === 0) {
+            if (rawHistory.length === 0) {
                 dataList.style.display = 'none';
                 return;
             }
 
+            let history = rawHistory.map(item => typeof item === 'string' ? { text: item, lastSearched: '' } : item);
+
             // Filter history based on current input value
             let val = input.value.toLowerCase();
-            let filteredHistory = history.filter(item => item.toLowerCase().includes(val));
+            let filteredHistory = history.filter(item => item.text.toLowerCase().includes(val));
 
             if (filteredHistory.length === 0) {
                 dataList.style.display = 'none';
                 return;
             }
+
+            let today = new Date().toISOString().split('T')[0];
 
             dataList.innerHTML = '';
             filteredHistory.forEach(function (item) {
@@ -561,13 +575,18 @@
                 div.className = 'autocomplete-item';
 
                 let textSpan = document.createElement('span');
-                textSpan.textContent = item;
+                textSpan.textContent = item.text;
                 textSpan.style.flexGrow = '1';
                 textSpan.onclick = function (e) {
                     e.stopPropagation();
-                    input.value = item;
+                    input.value = item.text;
                     dataList.style.display = 'none';
                 };
+
+                let actionsContainer = document.createElement('div');
+                actionsContainer.style.display = 'flex';
+                actionsContainer.style.alignItems = 'center';
+                actionsContainer.style.gap = '4px';
 
                 let delSpan = document.createElement('span');
                 delSpan.innerHTML = '&times;';
@@ -576,14 +595,24 @@
                 delSpan.onclick = function (e) {
                     e.stopPropagation();
                     let currentHistory = JSON.parse(localStorage.getItem(id + '-history') || '[]');
-                    currentHistory = currentHistory.filter(h => h !== item);
+                    currentHistory = currentHistory.filter(h => (typeof h === 'string' ? h : h.text) !== item.text);
                     localStorage.setItem(id + '-history', JSON.stringify(currentHistory));
                     showHistory(id); // Refresh list instantly after deleting
                     input.focus();
                 };
 
+                actionsContainer.appendChild(delSpan);
+
+                if (item.lastSearched === today) {
+                    let checkSpan = document.createElement('span');
+                    checkSpan.innerHTML = '&#10004;';
+                    checkSpan.className = 'autocomplete-check';
+                    checkSpan.title = 'Looked up today';
+                    actionsContainer.appendChild(checkSpan);
+                }
+
                 div.appendChild(textSpan);
-                div.appendChild(delSpan);
+                div.appendChild(actionsContainer);
                 dataList.appendChild(div);
             });
             dataList.style.display = 'block';
