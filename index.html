@@ -391,13 +391,35 @@
                 <div class="form-row">
                     <div class="form-label">time:</div>
                     <div class="form-control">
-                        <select id="adv-time">
+                        <select id="adv-time" onchange="toggleCustomTimeFields(); saveSelections();">
                             <option value="">Any time</option>
+                            <option value="h1">Past hour</option>
                             <option value="d1">Past 24 hours</option>
                             <option value="w1">Past week</option>
                             <option value="m1">Past month</option>
                             <option value="y1">Past year</option>
+                            <option value="custom_relative">Custom past duration...</option>
+                            <option value="custom_range">Custom date range...</option>
                         </select>
+                        <div id="custom-time-container" style="display: none; margin-top: 0.5rem;">
+                            <div id="custom-relative-group" style="display: none; gap: 0.5rem; align-items: center;">
+                                <span style="font-size: 0.85rem; color: var(--text-secondary);">Past</span>
+                                <input type="number" id="adv-time-num" min="1" placeholder="e.g. 5" style="width: 90px;" autocomplete="off" oninput="saveSelections()">
+                                <select id="adv-time-unit" style="width: auto;" onchange="saveSelections()">
+                                    <option value="h">Hours</option>
+                                    <option value="d" selected>Days</option>
+                                    <option value="w">Weeks</option>
+                                    <option value="m">Months</option>
+                                    <option value="y">Years</option>
+                                </select>
+                            </div>
+                            <div id="custom-range-group" style="display: none; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                                <span style="font-size: 0.85rem; color: var(--text-secondary);">From:</span>
+                                <input type="date" id="adv-time-from" style="width: 150px;" onchange="saveSelections()">
+                                <span style="font-size: 0.85rem; color: var(--text-secondary);">To:</span>
+                                <input type="date" id="adv-time-to" style="width: 150px;" onchange="saveSelections()">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -409,6 +431,28 @@
     </div>
 
     <script>
+        // Toggle visibility of custom time inputs based on time dropdown selection
+        function toggleCustomTimeFields() {
+            let timeVal = document.getElementById('adv-time').value;
+            let container = document.getElementById('custom-time-container');
+            let relGroup = document.getElementById('custom-relative-group');
+            let rangeGroup = document.getElementById('custom-range-group');
+
+            if (timeVal === 'custom_relative') {
+                container.style.display = 'block';
+                relGroup.style.display = 'flex';
+                rangeGroup.style.display = 'none';
+            } else if (timeVal === 'custom_range') {
+                container.style.display = 'block';
+                relGroup.style.display = 'none';
+                rangeGroup.style.display = 'flex';
+            } else {
+                container.style.display = 'none';
+                relGroup.style.display = 'none';
+                rangeGroup.style.display = 'none';
+            }
+        }
+
         // Allow users to press "Enter" inside any input to trigger the search
         document.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
@@ -465,10 +509,37 @@
             else if (type === 'animated') tbsParts.push('itp:animated');
 
             let time = document.getElementById('adv-time').value;
-            if (time === 'd1') tbsParts.push('qdr:d');
+            if (time === 'h1') tbsParts.push('qdr:h');
+            else if (time === 'd1') tbsParts.push('qdr:d');
             else if (time === 'w1') tbsParts.push('qdr:w');
             else if (time === 'm1') tbsParts.push('qdr:m');
             else if (time === 'y1') tbsParts.push('qdr:y');
+            else if (time === 'custom_relative') {
+                let num = document.getElementById('adv-time-num').value.trim();
+                let unit = document.getElementById('adv-time-unit').value;
+                if (num && !isNaN(num) && parseInt(num, 10) > 0) {
+                    tbsParts.push('qdr:' + unit + parseInt(num, 10));
+                }
+            } else if (time === 'custom_range') {
+                let from = document.getElementById('adv-time-from').value;
+                let to = document.getElementById('adv-time-to').value;
+                if (from || to) {
+                    let rangePart = 'cdr:1';
+                    if (from) {
+                        let parts = from.split('-');
+                        if (parts.length === 3) {
+                            rangePart += ',cd_min:' + parseInt(parts[1], 10) + '/' + parseInt(parts[2], 10) + '/' + parts[0];
+                        }
+                    }
+                    if (to) {
+                        let parts = to.split('-');
+                        if (parts.length === 3) {
+                            rangePart += ',cd_max:' + parseInt(parts[1], 10) + '/' + parseInt(parts[2], 10) + '/' + parts[0];
+                        }
+                    }
+                    tbsParts.push(rangePart);
+                }
+            }
 
             let rights = document.getElementById('adv-rights').value;
             if (rights === 'cc_publicdomain') tbsParts.push('sur:cl');
@@ -503,12 +574,20 @@
             window.location.href = url;
         }
 
-        // Automatically saves all text boxes and dropdowns to the browser
+        // Automatically saves all text boxes, dropdowns, and custom inputs to localStorage
         function saveSelections() {
             // Dropdowns: save the single current selection persistently
             let dropdownFields = ['adv-size', 'adv-aspect', 'adv-colors', 'adv-type', 'adv-filetype', 'adv-rights', 'adv-time'];
             dropdownFields.forEach(function (id) {
-                localStorage.setItem(id, document.getElementById(id).value);
+                let el = document.getElementById(id);
+                if (el) localStorage.setItem(id, el.value);
+            });
+
+            // Save custom time input values
+            let customTimeFields = ['adv-time-num', 'adv-time-unit', 'adv-time-from', 'adv-time-to'];
+            customTimeFields.forEach(function (id) {
+                let el = document.getElementById(id);
+                if (el) localStorage.setItem(id, el.value);
             });
 
             // Text boxes: save to a history array for the drop-down autocomplete
@@ -535,9 +614,23 @@
             dropdownFields.forEach(function (id) {
                 let savedValue = localStorage.getItem(id);
                 if (savedValue !== null) {
-                    document.getElementById(id).value = savedValue;
+                    let el = document.getElementById(id);
+                    if (el) el.value = savedValue;
                 }
             });
+
+            // Restore custom time input values
+            let customTimeFields = ['adv-time-num', 'adv-time-unit', 'adv-time-from', 'adv-time-to'];
+            customTimeFields.forEach(function (id) {
+                let savedValue = localStorage.getItem(id);
+                if (savedValue !== null) {
+                    let el = document.getElementById(id);
+                    if (el) el.value = savedValue;
+                }
+            });
+
+            // Toggle custom time input visibility based on restored selection
+            toggleCustomTimeFields();
         }
 
         // Run the load function immediately when the page finishes rendering
