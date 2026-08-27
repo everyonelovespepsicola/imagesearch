@@ -307,16 +307,16 @@
                             <option value="large">Large</option>
                             <option value="medium">Medium</option>
                             <option value="icon">Icon</option>
-                            <option value="2mp">Larger than 2 MP</option>
-                            <option value="4mp">Larger than 4 MP</option>
-                            <option value="6mp">Larger than 6 MP</option>
-                            <option value="8mp">Larger than 8 MP</option>
-                            <option value="10mp">Larger than 10 MP</option>
-                            <option value="12mp">Larger than 12 MP</option>
-                            <option value="15mp">Larger than 15 MP</option>
-                            <option value="20mp">Larger than 20 MP</option>
-                            <option value="40mp">Larger than 40 MP</option>
-                            <option value="70mp">Larger than 70 MP</option>
+                            <option value="2mp">Larger than 2 MP (g2)</option>
+                            <option value="4mp">Larger than 4 MP / 4MP+ (g4)</option>
+                            <option value="6mp">Larger than 6 MP (g6)</option>
+                            <option value="8mp">Larger than 8 MP (g8)</option>
+                            <option value="10mp">Larger than 10 MP (g10)</option>
+                            <option value="12mp">Larger than 12 MP (g12)</option>
+                            <option value="15mp">Larger than 15 MP (g15)</option>
+                            <option value="20mp">Larger than 20 MP (g20)</option>
+                            <option value="40mp">Larger than 40 MP (g40)</option>
+                            <option value="70mp">Larger than 70 MP (g70)</option>
                         </select>
                     </div>
                 </div>
@@ -509,6 +509,17 @@
             let none = document.getElementById('adv-none').value.trim();
             let site = document.getElementById('adv-site').value.trim();
             let filetype = document.getElementById('adv-filetype').value;
+
+            // Shortcut parsing: if input starts with 'g4', 'g2', 'g70' etc., set image size dropdown and strip prefix
+            let sizeSelect = document.getElementById('adv-size');
+            let sizeMatch = all.match(/^g(\d+)(?:\s+|$)/i);
+            if (sizeMatch) {
+                let mpVal = sizeMatch[1] + 'mp';
+                if (Array.from(sizeSelect.options).some(opt => opt.value === mpVal)) {
+                    sizeSelect.value = mpVal;
+                    all = all.replace(/^g\d+\s*/i, '').trim();
+                }
+            }
 
             let queryParts = [];
 
