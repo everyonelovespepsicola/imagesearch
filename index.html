@@ -213,6 +213,25 @@
             background-color: var(--primary-hover);
         }
 
+        .reset-btn {
+            background-color: #f8f9fa;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 0.85rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+
+        .reset-btn:hover {
+            background-color: #f1f3f4;
+            border-color: #dadce0;
+            color: var(--text-primary);
+        }
+
         /* Mobile adjustments */
         @media (max-width: 600px) {
             .advanced-form {
@@ -270,8 +289,9 @@
 
                 <div class="form-row">
                     <div class="form-label">all these words:</div>
-                    <div class="form-control">
+                    <div class="form-control" style="display: flex; gap: 8px;">
                         <input type="text" id="adv-all" autocomplete="off">
+                        <button type="button" class="reset-btn" onclick="resetCheckmarks('adv-all')" title="Remove checkmarks from history">Reset</button>
                         <div id="adv-all-list" class="autocomplete-list"></div>
                     </div>
                 </div>
@@ -772,6 +792,26 @@
             input.addEventListener('focus', function () { showHistory(id); });
             input.addEventListener('input', function () { showHistory(id); });
         });
+
+        // Function to reset/clear checkmarks from history while keeping the words intact
+        function resetCheckmarks(id) {
+            let rawHistory = JSON.parse(localStorage.getItem(id + '-history') || '[]');
+            if (rawHistory.length === 0) return;
+
+            let updatedHistory = rawHistory.map(item => {
+                if (typeof item === 'string') {
+                    return { text: item, lastSearched: '' };
+                }
+                return { ...item, lastSearched: '' };
+            });
+
+            localStorage.setItem(id + '-history', JSON.stringify(updatedHistory));
+
+            let dataList = document.getElementById(id + '-list');
+            if (dataList && dataList.style.display !== 'none') {
+                showHistory(id);
+            }
+        }
 
         // Hide autocomplete when clicking anywhere outside
         document.addEventListener('click', function (e) {
